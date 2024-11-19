@@ -30,6 +30,10 @@ type Tree struct {
 	root *Node
 }
 
+func NewTree() *Tree {
+	return &Tree{root: nil}
+}
+
 func RedUncleCaseCheck(X *Node) bool {
 	var F, G, U *Node
 
