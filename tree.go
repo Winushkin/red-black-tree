@@ -83,17 +83,32 @@ func (tree *Tree) FandGinRowCheck(X *Node) bool {
 	if F.color == false {
 		return false
 	}
+
 	G = F.parent
 	if G == nil {
 		return false
 	}
+
+	// left case
 	if F == G.left {
 		U = G.right
+		if U == nil || !U.color {
+			if X == F.left && F == G.left {
+				return true
+			}
+		}
+
+		// right case
 	} else {
 		U = G.left
+		if U == nil || !U.color {
+			if X == F.right && F == G.right {
+				return true
+			}
+		}
 	}
 
-	return !U.color
+	return false
 }
 
 func (tree *Tree) FandGinRow(X *Node) {
@@ -102,14 +117,19 @@ func (tree *Tree) FandGinRow(X *Node) {
 		F = X.parent
 		G = F.parent
 
-		if F == G.left {
-			F.right = G // left case
+		if F == G.left { // left case
+			G.left = F.right
+			F.right = G
+			F.parent = G.parent
+			G.parent = F
+
 		} else {
-			F.left = G // right case
+			G.right = F.left
+			F.left = G
+			F.parent = G.parent
+			G.parent = F
 		}
 
-		F.parent = G.parent
-		G.parent = F
 		if F.parent == nil {
 			tree.root = F
 		} else {
@@ -119,25 +139,49 @@ func (tree *Tree) FandGinRow(X *Node) {
 				F.parent.right = F
 			}
 		}
-	}
 
+		F.RepaintBlack()
+		G.RepaintBlack()
+
+	}
 }
 
 func BlackUncleCaseCheck(X *Node) bool {
-	// add case3 to this case
-	F := X.parent
+	var F, G, U *Node
+	F = X.parent
 	if F.color == false {
 		return false
 	}
-	G := F.parent
+
+	G = F.parent
 	if G == nil {
 		return false
 	}
-	//U := G.right
-	return true
+
+	// left case
+	if F == G.left {
+		U = G.right
+		if U == nil || !U.color {
+			if X == F.right && F == G.left {
+				return true
+			}
+		}
+
+		// right case
+	} else {
+		U = G.left
+		if U == nil || !U.color {
+			if X == F.left && F == G.right {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 func BlackUncleCase(X *Node) {
+
 	// add case3 to this case
 
 }
