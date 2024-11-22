@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 type Node struct {
 	parent      *Node
 	value       int
@@ -15,6 +17,8 @@ func NewNode(value int, parent *Node) *Node {
 		left:   nil,
 		right:  nil}
 }
+
+// rePaint
 
 func (node *Node) RepaintBlack() {
 	node.color = false //to black
@@ -34,19 +38,25 @@ func NewTree() *Tree {
 	return &Tree{root: nil}
 }
 
-func RedUncleCaseCheck(X *Node) bool {
+func (tree *Tree) RedUncleCaseCheck(X *Node) bool {
 	var F, G, U *Node
 
 	F = X.parent
+
+	if F == nil {
+		return false
+	}
+
 	if F.color == false {
 		return false
 	}
+
 	G = F.parent
 	if G == nil {
 		return false
 	}
 
-	if F == G.parent {
+	if F == G.left {
 		U = G.right // left case
 	} else {
 		U = G.left // right case
@@ -59,8 +69,8 @@ func RedUncleCaseCheck(X *Node) bool {
 	return U.color
 }
 
-func RedUncleCase(X *Node) {
-	if RedUncleCaseCheck(X) {
+func (tree *Tree) RedUncleCase(X *Node) {
+	if tree.RedUncleCaseCheck(X) {
 		var F, G, U *Node
 		F = X.parent
 		G = F.parent
@@ -73,13 +83,14 @@ func RedUncleCase(X *Node) {
 
 		F.RepaintBlack()
 		U.RepaintBlack()
-		RedUncleCase(G)
+		tree.RedUncleCase(G)
 	}
 }
 
-func (tree *Tree) FandGinRowCheck(X *Node) bool {
+func (tree *Tree) blackUncleLineCaseCheck(X *Node) bool {
 	var F, G, U *Node
 	F = X.parent
+
 	if F.color == false {
 		return false
 	}
@@ -111,8 +122,8 @@ func (tree *Tree) FandGinRowCheck(X *Node) bool {
 	return false
 }
 
-func (tree *Tree) FandGinRow(X *Node) {
-	if tree.FandGinRowCheck(X) {
+func (tree *Tree) blackUncleLineCase(X *Node) {
+	if tree.blackUncleLineCaseCheck(X) {
 		var F, G *Node
 		F = X.parent
 		G = F.parent
@@ -141,14 +152,15 @@ func (tree *Tree) FandGinRow(X *Node) {
 		}
 
 		F.RepaintBlack()
-		G.RepaintBlack()
+		G.RepaintRed()
 
 	}
 }
 
-func BlackUncleCaseCheck(X *Node) bool {
+func (tree *Tree) BlackUncleCaseCheck(X *Node) bool {
 	var F, G, U *Node
 	F = X.parent
+
 	if F.color == false {
 		return false
 	}
@@ -180,16 +192,78 @@ func BlackUncleCaseCheck(X *Node) bool {
 	return false
 }
 
-func BlackUncleCase(X *Node) {
+func (tree *Tree) BlackUncleCase(X *Node) {
+	if tree.BlackUncleCaseCheck(X) {
+		var F, G *Node
+		F = X.parent
+		G = F.parent
+		// left case
+		if G.left == F {
+			G.left = X
+			X.left = F
+			F.right = nil
 
-	// add case3 to this case
+		} else { // right case
+			G.right = X
+			X.right = F
+			F.left = nil
+		}
 
+		X.parent = G
+		F.parent = X
+
+		tree.blackUncleLineCase(F)
+	}
+}
+
+func (tree *Tree) PrintTree() {
+	if tree.root == nil {
+		fmt.Println("Дерево пустое")
+		return
+	}
+	printNode(tree.root, "", true)
+}
+
+// Рекурсивная функция вывода узла
+func printNode(node *Node, prefix string, isRight bool) {
+	if node != nil {
+		// Определяем цвет узла
+		color := "R" // Красный
+		if !node.color {
+			color = "B" // Черный
+		}
+
+		// Вывод текущего узла
+		fmt.Printf("%s%s── %d(%s)\n", prefix, branch(isRight), node.value, color)
+
+		// Обновляем префикс для дочерних узлов
+		newPrefix := prefix + branchPrefix(isRight)
+		printNode(node.left, newPrefix, false) // Левый ребенок
+		printNode(node.right, newPrefix, true) // Правый ребенок
+	}
+}
+
+// Функция для определения символа ветви (левый или правый ребенок)
+func branch(isRight bool) string {
+	if isRight {
+		return "└"
+	}
+	return "├"
+}
+
+// Функция для определения отступов для дочерних узлов
+func branchPrefix(isRight bool) string {
+	if isRight {
+		return "   "
+	}
+	return "│  "
 }
 
 func (tree *Tree) append(value int) {
 	if tree.root == nil {
 		tree.root = NewNode(value, nil)
 		tree.root.color = false
+		tree.PrintTree()
 		return
 	}
 
@@ -212,12 +286,16 @@ func (tree *Tree) append(value int) {
 				break
 			}
 		} else {
+			tree.PrintTree()
 			return
 		}
 	}
 
-	RedUncleCase(cur)
-
+	tree.RedUncleCase(cur)
+	tree.blackUncleLineCase(cur)
+	tree.BlackUncleCase(cur)
 	tree.root.RepaintBlack()
+
+	tree.PrintTree()
 
 }
