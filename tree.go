@@ -331,6 +331,19 @@ func (tree *Tree) search(value int) *Node {
 
 // Removing elements
 
+func (tree *Tree) noChildrenRemove(X *Node) {
+	if X == tree.root {
+		tree.root = nil
+	}
+
+	F := X.parent
+	if F.left == X {
+		F.left = nil
+	} else {
+		F.right = nil
+	}
+}
+
 func (tree *Tree) remove(value int) {
 	X := tree.search(value)
 	if X == nil {
