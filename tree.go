@@ -344,11 +344,38 @@ func (tree *Tree) noChildrenRemove(X *Node) {
 	}
 }
 
+func (tree *Tree) OneChildRemove(X *Node) {
+	var Child *Node
+	if X.right == nil { // left child
+		Child = X.left
+	} else { // right child
+		Child = X.right
+	}
+
+	if X == tree.root {
+		tree.root = Child
+	}
+	Child.parent = X.parent
+
+	if Child.color && Child.parent.color {
+		Child.RepaintBlack()
+	}
+
+}
+
 func (tree *Tree) remove(value int) {
 	X := tree.search(value)
 	if X == nil {
 		fmt.Println("No such node")
 		return
+	}
+
+	if X.left == nil && X.right == nil {
+		tree.noChildrenRemove(X)
+	} else if (X.left == nil && X.right != nil) || (X.left != nil && X.right == nil) { //XOR
+		tree.OneChildRemove(X)
+	} else {
+		//удаление ноды с 2-мя детьми
 	}
 
 }
