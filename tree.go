@@ -1,6 +1,8 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Node struct {
 	parent      *Node
@@ -259,7 +261,7 @@ func branchPrefix(isRight bool) string {
 	return "│  "
 }
 
-func (tree *Tree) append(value int) {
+func (tree *Tree) insert(value int) {
 	if tree.root == nil {
 		tree.root = NewNode(value, nil)
 		tree.root.color = false
@@ -297,5 +299,43 @@ func (tree *Tree) append(value int) {
 	tree.root.RepaintBlack()
 
 	tree.PrintTree()
+}
+
+// searching
+
+func (tree *Tree) search(value int) *Node {
+	cur := tree.root
+	if cur == nil {
+		return nil
+	}
+
+	for {
+		if value == cur.value {
+			return cur
+		} else if value < cur.value {
+			if cur.left != nil {
+				cur = cur.left
+			} else {
+				break
+			}
+		} else if cur.value < value {
+			if cur.right != nil {
+				cur = cur.right
+			} else {
+				break
+			}
+		}
+	}
+	return nil
+}
+
+// Removing elements
+
+func (tree *Tree) remove(value int) {
+	X := tree.search(value)
+	if X == nil {
+		fmt.Println("No such node")
+		return
+	}
 
 }
