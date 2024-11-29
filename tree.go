@@ -4,34 +4,6 @@ import (
 	"fmt"
 )
 
-type Node struct {
-	parent      *Node
-	value       int
-	color       bool // true - red, false - black
-	left, right *Node
-}
-
-func NewNode(value int, parent *Node) *Node {
-	return &Node{
-		parent: parent,
-		value:  value,
-		color:  true,
-		left:   nil,
-		right:  nil}
-}
-
-// rePaint
-
-func (node *Node) RepaintBlack() {
-	node.color = false //to black
-}
-
-func (node *Node) RepaintRed() {
-	node.color = true // to red
-}
-
-// Tree struct
-
 type Tree struct {
 	root *Node
 }
@@ -69,153 +41,6 @@ func (tree *Tree) RedUncleCaseCheck(X *Node) bool {
 	}
 
 	return U.color
-}
-
-func (tree *Tree) RedUncleCase(X *Node) {
-	if tree.RedUncleCaseCheck(X) {
-		var F, G, U *Node
-		F = X.parent
-		G = F.parent
-
-		if F == G.left {
-			U = G.right // left case
-		} else {
-			U = G.left // right case
-		}
-
-		F.RepaintBlack()
-		U.RepaintBlack()
-		tree.RedUncleCase(G)
-	}
-}
-
-func (tree *Tree) blackUncleLineCaseCheck(X *Node) bool {
-	var F, G, U *Node
-	F = X.parent
-
-	if F.color == false {
-		return false
-	}
-
-	G = F.parent
-	if G == nil {
-		return false
-	}
-
-	// left case
-	if F == G.left {
-		U = G.right
-		if U == nil || !U.color {
-			if X == F.left && F == G.left {
-				return true
-			}
-		}
-
-		// right case
-	} else {
-		U = G.left
-		if U == nil || !U.color {
-			if X == F.right && F == G.right {
-				return true
-			}
-		}
-	}
-
-	return false
-}
-
-func (tree *Tree) blackUncleLineCase(X *Node) {
-	if tree.blackUncleLineCaseCheck(X) {
-		var F, G *Node
-		F = X.parent
-		G = F.parent
-
-		if F == G.left { // left case
-			G.left = F.right
-			F.right = G
-			F.parent = G.parent
-			G.parent = F
-
-		} else {
-			G.right = F.left
-			F.left = G
-			F.parent = G.parent
-			G.parent = F
-		}
-
-		if F.parent == nil {
-			tree.root = F
-		} else {
-			if F.parent.left == G {
-				F.parent.left = F
-			} else {
-				F.parent.right = F
-			}
-		}
-
-		F.RepaintBlack()
-		G.RepaintRed()
-
-	}
-}
-
-func (tree *Tree) BlackUncleCaseCheck(X *Node) bool {
-	var F, G, U *Node
-	F = X.parent
-
-	if F.color == false {
-		return false
-	}
-
-	G = F.parent
-	if G == nil {
-		return false
-	}
-
-	// left case
-	if F == G.left {
-		U = G.right
-		if U == nil || !U.color {
-			if X == F.right && F == G.left {
-				return true
-			}
-		}
-
-		// right case
-	} else {
-		U = G.left
-		if U == nil || !U.color {
-			if X == F.left && F == G.right {
-				return true
-			}
-		}
-	}
-
-	return false
-}
-
-func (tree *Tree) BlackUncleCase(X *Node) {
-	if tree.BlackUncleCaseCheck(X) {
-		var F, G *Node
-		F = X.parent
-		G = F.parent
-		// left case
-		if G.left == F {
-			G.left = X
-			X.left = F
-			F.right = nil
-
-		} else { // right case
-			G.right = X
-			X.right = F
-			F.left = nil
-		}
-
-		X.parent = G
-		F.parent = X
-
-		tree.blackUncleLineCase(F)
-	}
 }
 
 func (tree *Tree) PrintTree() {
@@ -293,9 +118,18 @@ func (tree *Tree) insert(value int) {
 		}
 	}
 
-	tree.RedUncleCase(cur)
-	tree.blackUncleLineCase(cur)
-	tree.BlackUncleCase(cur)
+	if tree.RedUncleCaseCheck(cur) {
+		tree.RedUncleCase(cur)
+	}
+
+	if tree.blackUncleLineCaseCheck(cur) {
+		tree.blackUncleLineCase(cur)
+	}
+
+	if tree.BlackUncleCaseCheck(cur) {
+		tree.BlackUncleCase(cur)
+	}
+
 	tree.root.RepaintBlack()
 
 	tree.PrintTree()
@@ -331,16 +165,34 @@ func (tree *Tree) search(value int) *Node {
 
 // Removing elements
 
-func (tree *Tree) noChildrenRemove(X *Node) {
+func (tree *Tree) childFreeRemove(X *Node) {
 	if X == tree.root {
 		tree.root = nil
+		return
 	}
-
 	F := X.parent
 	if F.left == X {
-		F.left = nil
+		if color(X) {
+			F.left = nil
+		} else {
+			B := F.right
+			if !color(B) {
+				B.RepaintRed()
+			}
+			X.parent = nil
+			F.left = nil
+		}
 	} else {
-		F.right = nil
+		if color(X) {
+			F.right = nil
+		} else {
+			B := F.left
+			if !color(B) {
+				B.RepaintRed()
+			}
+			X.parent = nil
+			F.right = nil
+		}
 	}
 }
 
@@ -360,6 +212,9 @@ func (tree *Tree) OneChildRemove(X *Node) {
 	if Child.color && Child.parent.color {
 		Child.RepaintBlack()
 	}
+}
+
+func (tree *Tree) twoChildrenRemove(X *Node) {
 
 }
 
@@ -371,11 +226,13 @@ func (tree *Tree) remove(value int) {
 	}
 
 	if X.left == nil && X.right == nil {
-		tree.noChildrenRemove(X)
+		tree.childFreeRemove(X)
 	} else if (X.left == nil && X.right != nil) || (X.left != nil && X.right == nil) { //XOR
 		tree.OneChildRemove(X)
 	} else {
+
 		//удаление ноды с 2-мя детьми
+
 	}
 
 }
