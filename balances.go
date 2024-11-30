@@ -157,18 +157,23 @@ func (tree *Tree) BlackUncleCase(X *Node) {
 
 // removing
 
-// BlackBroNephewsCaseCheck Case 1
-func (tree *Tree) BlackBroNephewsCaseCheck(X *Node) bool {
-	F := X.parent
-	if F == nil {
-		// обработать ситуацию
-		return false
-	}
+// BlackBroNephewsCaseCheck Case 1.(1,2)
+func (tree *Tree) BlackBroNefCaseCheck(X, F *Node) bool {
 	var B, N1, N2 *Node
+
+	if F == nil {
+		if X != nil {
+			F = X.parent
+			if F == nil {
+				return false
+			}
+		}
+	}
 
 	if F.left == X {
 		B = F.right
 		N1, N2 = B.left, B.right
+
 	} else {
 		B = F.left
 		N1, N2 = B.left, B.right
@@ -181,115 +186,72 @@ func (tree *Tree) BlackBroNephewsCaseCheck(X *Node) bool {
 	return false
 }
 
-func (tree *Tree) BlackBroNefCase(X *Node) {
+func (tree *Tree) BlackBroNefCase(X, F *Node) {
 
-	if tree.BlackBroNephewsCaseCheck(X) {
-		F := X.parent
-		var B *Node
-
-		if F.left == X {
-			B = F.right
-		} else {
-			B = F.left
-		}
-
-		B.RepaintRed()
-		if !F.color {
-			F.RepaintBlack()
-			tree.BlackBroNefCase(F)
-		}
-
-		F.RepaintBlack()
+	if F == nil {
+		F = X.parent
 	}
+
+	var B *Node
+
+	if F.left == X {
+		B = F.right
+	} else {
+		B = F.left
+	}
+
+	B.RepaintRed()
+	if !F.color {
+		F.RepaintBlack()
+		if tree.BlackBroNefCaseCheck(F, nil) {
+			tree.BlackBroNefCase(F, nil)
+		}
+
+	}
+
+	F.RepaintBlack()
 }
 
 // BlackBroRedRNefCaseCheck Case 2
-func (tree *Tree) BlackBroRedRNefCaseCheck(X *Node) bool {
-	F := X.parent
+func (tree *Tree) BlackBroRedRNefCaseCheck(X, F *Node) bool {
 	if F == nil {
-		return false
+		if X != nil {
+			F = X.parent
+			if F == nil {
+				return false
+			}
+		}
 	}
 
 	var B, N2 *Node
 
 	if F.left == X {
 		B = F.right
+		if B == nil {
+			return false
+		}
 		N2 = B.right
+
 	} else {
 		B = F.left
+		if B == nil {
+			return false
+		}
 		N2 = B.left
 	}
 
-	if !B.color && N2.color {
+	if !color(B) && color(N2) {
 		return true
 	}
 	return false
 }
 
-func (tree *Tree) BlackBroRedRNefCase(X *Node) {
-	if tree.BlackBroRedRNefCaseCheck(X) {
-		F := X.parent
-
-		var B, N1, N2 *Node
-		var leftCase = false
-
-		if F.left == X {
-			leftCase = true
-		}
-
-		if leftCase {
-			B = F.right
-			N1, N2 = B.left, B.right
-			B.left = F
-			F.parent = B
-			F.right = N1
-			N1.parent = F
-			N2.RepaintBlack()
-			swapColors(F, B)
-
-		} else {
-			B = F.left
-			N1, N2 = B.left, B.right
-			B.right = F
-			F.parent = B
-			F.left = N2
-			N1.RepaintBlack()
-			swapColors(F, B)
-
-		}
-
-		if F == tree.root {
-			tree.root = B
-			B = nil
-		}
-	}
-}
-
-// BlackBroRNEFRedLNefCaseCheck case 3
-func (tree *Tree) BlackBroRNEFRedLNefCaseCheck(X *Node) bool {
-	F := X.parent
+func (tree *Tree) BlackBroRedRNefCase(X, F *Node) {
 
 	if F == nil {
-		return false
+		F = X.parent
 	}
 
-	var B, N1, N2 *Node
-	if F.left == X {
-		B = F.right
-		N1, N2 = B.left, B.right
-	} else {
-		B = F.left
-		N2, N1 = B.left, B.right
-	}
-
-	if !B.color && !N2.color && N1.color {
-		return true
-	}
-	return false
-}
-
-func (tree *Tree) BlackBroRNEFRedLNefCase(X *Node) {
-	F := X.parent
 	var B, N1, N2 *Node
 	var leftCase = false
 
@@ -297,32 +259,210 @@ func (tree *Tree) BlackBroRNEFRedLNefCase(X *Node) {
 		leftCase = true
 	}
 
-	// удалить
-	if N2.color && false {
-		return
+	if leftCase {
+		B = F.right
+		N1, N2 = B.left, B.right
+
+		B.left = F
+		B.parent = F.parent
+		F.right = N1
+		N1.parent = F
+
+		N2.RepaintBlack()
+		swapColors(F, B)
+
+	} else {
+		B = F.left
+		N1, N2 = B.right, B.left
+
+		B.right = F
+		F.parent = B
+		F.left = N1
+		N1.parent = F
+
+		N2.RepaintBlack()
+		swapColors(F, B)
+	}
+
+	F.parent = B
+	if B.parent == nil {
+		tree.root = B
+	}
+	if B == B.parent.left {
+		B.parent.left = B
+	} else {
+		B.parent.right = B
+	}
+
+	//if F == tree.root {
+	//	tree.root = B
+	//	B = nil
+	//}
+}
+
+// BlackBroRNEFRedLNefCaseCheck case 3
+func (tree *Tree) BlackBroRNEFRedLNefCaseCheck(X, F *Node) bool {
+
+	if F == nil {
+		if X != nil {
+			F = X.parent
+			if F == nil {
+				return false
+			}
+		}
+	}
+
+	var B, N1, N2 *Node
+	if F.left == X {
+		B = F.right
+		if B == nil {
+			return false
+		}
+		N1, N2 = B.left, B.right
+	} else {
+		B = F.left
+		if B == nil {
+			return false
+		}
+		N2, N1 = B.left, B.right
+	}
+
+	if !color(B) && !color(N2) && color(N1) {
+		return true
+	}
+	return false
+}
+
+func (tree *Tree) BlackBroRNEFRedLNefCase(X, F *Node) {
+	if F == nil {
+		F = X.parent
+	}
+
+	var B, N1 *Node
+	var leftCase = false
+
+	if F.left == X {
+		leftCase = true
 	}
 
 	if leftCase {
 		B = F.right
-		N1, N2 = B.left, B.right
+		N1 = B.left
 		F.right = N1
 		N1.parent = F
 		B.left = N1.right
+		if N1.right != nil {
+			N1.right.parent = B
+		}
 		N1.right = B
 		B.parent = N1
 
 	} else {
 		B = F.left
-		N2, N1 = B.left, B.right
+		N1 = B.right
 		F.left = N1
 		N1.parent = F
 		B.right = N1.left
+		if N1.left != nil {
+			N1.left.parent = B
+		}
 		N1.left = B
 		B.parent = N1
 	}
 
 	N1.RepaintBlack()
 	B.RepaintRed()
-	tree.BlackBroRedRNefCase(X)
 
+	if tree.BlackBroRedRNefCaseCheck(X, F) {
+		tree.BlackBroRedRNefCase(X, F)
+	}
+}
+
+// RedBroCaseCheck Case 4
+func (tree *Tree) RedBroCaseCheck(X, F *Node) bool {
+
+	if F == nil {
+		if X != nil {
+			F = X.parent
+			if F == nil {
+				return false
+			}
+		}
+	}
+
+	var B, N1, N2 *Node
+
+	if X == F.left {
+		B = F.right
+		if B == nil {
+			return false
+		}
+		N1, N2 = B.left, B.right
+
+	} else {
+		B = F.left
+		if B == nil {
+			return false
+		}
+		N1, N2 = B.right, B.left
+	}
+
+	if !color(F) && color(B) && !color(N1) && !color(N2) {
+		return true
+	}
+
+	return false
+}
+
+func (tree *Tree) RedBroCase(X, F *Node) {
+	if F == nil {
+		F = X.parent
+	}
+	var B, N1, N2 *Node
+	var leftCase = false
+
+	if X == F.left {
+		leftCase = true
+	}
+
+	if leftCase {
+		B = F.right
+		N1, N2 = B.left, B.right
+		B.left = F
+		B.parent = F.parent
+		F.right = N1
+		N1.parent = F
+
+	} else {
+		B = F.left
+		N1, N2 = B.right, B.left
+		B.right = F
+		B.parent = F.parent
+		F.left = N1
+		N1.parent = F
+	}
+
+	F.parent = B
+	if B.parent == nil {
+		tree.root = B
+	}
+	if B == B.parent.left {
+		B.parent.left = B
+	} else {
+		B.parent.right = B
+	}
+
+	F.RepaintRed()
+	B.RepaintBlack()
+
+	if tree.BlackBroNefCaseCheck(N2, F) {
+		tree.BlackBroNefCase(N2, F)
+	}
+
+	//if tree.BlackBroRedRNefCase()
+
+	//if F == tree.root {
+	//	tree.root = B
+	//	B = nil
+	//}
 }
