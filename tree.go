@@ -21,7 +21,7 @@ func (tree *Tree) RedUncleCaseCheck(X *Node) bool {
 		return false
 	}
 
-	if F.color == false {
+	if !color(F) {
 		return false
 	}
 
@@ -36,11 +36,7 @@ func (tree *Tree) RedUncleCaseCheck(X *Node) bool {
 		U = G.left // right case
 	}
 
-	if U == nil {
-		return false
-	}
-
-	return U.color
+	return color(U)
 }
 
 func (tree *Tree) PrintTree() {
@@ -173,40 +169,45 @@ func (tree *Tree) childFreeRemove(X *Node) {
 
 	F := X.parent
 	if F.left == X {
+		F.left = nil
 		if color(X) {
-			F.left = nil
-		} else {
-			B := F.right
-			if !color(B) {
-				B.RepaintRed()
-			}
-			X.parent = nil
-			F.left = nil
+			return
 		}
+		//else {
+		//	B := F.right
+		//	if B
+		//	if !color(B) {
+		//		B.RepaintRed()
+		//	}
+		//	X.parent = nil
+		//	F.left = nil
+		//}
 	} else {
+		F.right = nil
 		if color(X) {
-			F.right = nil
-		} else {
-			B := F.left
-			if !color(B) {
-				B.RepaintRed()
-			}
-			X.parent = nil
-			F.right = nil
+			return
 		}
+		//else {
+		//	B := F.left
+		//	if !color(B) {
+		//		B.RepaintRed()
+		//	}
+		//	X.parent = nil
+		//	F.right = nil
+		//}
 	}
 
-	if tree.BlackBroNefCaseCheck(X, F) {
-		tree.BlackBroNefCase(X, F)
+	if tree.BlackBroNefCaseCheck(nil, F) {
+		tree.BlackBroNefCase(nil, F)
 	}
-	if tree.BlackBroRedRNefCaseCheck(X, F) {
-		tree.BlackBroRedRNefCase(X, F)
+	if tree.BlackBroRedRNefCaseCheck(nil, F) {
+		tree.BlackBroRedRNefCase(nil, F)
 	}
-	if tree.BlackBroRNEFRedLNefCaseCheck(X, F) {
-		tree.BlackBroRNEFRedLNefCase(X, F)
+	if tree.BlackBroRNEFRedLNefCaseCheck(nil, F) {
+		tree.BlackBroRNEFRedLNefCase(nil, F)
 	}
-	if tree.RedBroCaseCheck(X, F) {
-		tree.RedBroCase(X, F)
+	if tree.RedBroCaseCheck(nil, F) {
+		tree.RedBroCase(nil, F)
 	}
 }
 
@@ -235,6 +236,7 @@ func (tree *Tree) OneChildRemove(X *Node) {
 
 	if color(Child) && color(Child.parent) {
 		Child.RepaintBlack()
+		return
 	}
 
 	if tree.BlackBroNefCaseCheck(Child, F) {
@@ -252,6 +254,18 @@ func (tree *Tree) OneChildRemove(X *Node) {
 }
 
 func (tree *Tree) twoChildrenRemove(X *Node) {
+	cur := X.right
+	for cur.left != nil {
+		cur = cur.left
+	}
+
+	cur.value, X.value = X.value, cur.value
+
+	if cur.right != nil {
+		tree.OneChildRemove(cur)
+	} else {
+		tree.childFreeRemove(cur)
+	}
 
 }
 
@@ -267,22 +281,8 @@ func (tree *Tree) remove(value int) {
 	} else if (X.left == nil && X.right != nil) || (X.left != nil && X.right == nil) { //XOR
 		tree.OneChildRemove(X)
 	} else {
-
-		//удаление ноды с 2-мя детьми
-
+		tree.twoChildrenRemove(X)
 	}
 
-	if tree.BlackBroNefCaseCheck(X, F) {
-		tree.BlackBroNefCase(X, F)
-	}
-	if tree.BlackBroRedRNefCaseCheck(X, F) {
-		tree.BlackBroRedRNefCase(X, F)
-	}
-	if tree.BlackBroRNEFRedLNefCaseCheck(X, F) {
-		tree.BlackBroRNEFRedLNefCase(X, F)
-	}
-	if tree.RedBroCaseCheck(X, F) {
-		tree.RedBroCase(X, F)
-	}
-
+	tree.root.RepaintBlack()
 }
