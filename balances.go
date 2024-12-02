@@ -1,21 +1,25 @@
 package main
 
 func (tree *Tree) RedUncleCase(X *Node) {
-	if tree.RedUncleCaseCheck(X) {
-		var F, G, U *Node
-		F = X.parent
-		G = F.parent
+	var F, G, U *Node
+	F = X.parent
+	G = F.parent
 
-		if F == G.left {
-			U = G.right // left case
-		} else {
-			U = G.left // right case
-		}
+	if F == G.left {
+		U = G.right // left case
+	} else {
+		U = G.left // right case
+	}
 
-		F.RepaintBlack()
-		U.RepaintBlack()
-		G.RepaintRed()
+	F.RepaintBlack()
+	U.RepaintBlack()
+	G.RepaintRed()
+	if tree.RedUncleCaseCheck(G) {
 		tree.RedUncleCase(G)
+	} else if tree.blackUncleLineCaseCheck(G) {
+		tree.blackUncleLineCase(G)
+	} else if tree.BlackUncleCaseCheck(G) {
+		tree.BlackUncleCase(G)
 	}
 }
 
@@ -176,10 +180,9 @@ func (tree *Tree) BlackBroNefCaseCheck(X, F *Node) bool {
 
 	} else {
 		B = F.left
-		N1, N2 = B.left, B.right
+		N1, N2 = B.right, B.left
 	}
-
-	if !B.color && !N1.color && !N2.color {
+	if !color(B) && !color(N1) && !color(N2) {
 		return true
 	}
 
@@ -201,15 +204,15 @@ func (tree *Tree) BlackBroNefCase(X, F *Node) {
 	}
 
 	B.RepaintRed()
-	if !F.color {
+	if !color(F) {
 		F.RepaintBlack()
 		if tree.BlackBroNefCaseCheck(F, nil) {
 			tree.BlackBroNefCase(F, nil)
 		}
-
+	} else {
+		F.RepaintBlack()
 	}
 
-	F.RepaintBlack()
 }
 
 // BlackBroRedRNefCaseCheck Case 2
@@ -267,6 +270,9 @@ func (tree *Tree) BlackBroRedRNefCase(X, F *Node) {
 		B.parent = F.parent
 		F.right = N1
 		N1.parent = F
+		if N1 != nil {
+			N1.parent = F
+		}
 
 		N2.RepaintBlack()
 		swapColors(F, B)
@@ -276,9 +282,11 @@ func (tree *Tree) BlackBroRedRNefCase(X, F *Node) {
 		N1, N2 = B.right, B.left
 
 		B.right = F
-		F.parent = B
+		B.parent = F.parent
 		F.left = N1
-		N1.parent = F
+		if N1 != nil {
+			N1.parent = F
+		}
 
 		N2.RepaintBlack()
 		swapColors(F, B)
@@ -288,16 +296,12 @@ func (tree *Tree) BlackBroRedRNefCase(X, F *Node) {
 	if B.parent == nil {
 		tree.root = B
 	}
-	if B == B.parent.left {
+
+	if B.parent.left == F {
 		B.parent.left = B
 	} else {
 		B.parent.right = B
 	}
-
-	//if F == tree.root {
-	//	tree.root = B
-	//	B = nil
-	//}
 }
 
 // BlackBroRNEFRedLNefCaseCheck case 3
