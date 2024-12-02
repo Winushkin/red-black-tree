@@ -176,10 +176,16 @@ func (tree *Tree) BlackBroNefCaseCheck(X, F *Node) bool {
 
 	if F.left == X {
 		B = F.right
+		if B == nil {
+			return false
+		}
 		N1, N2 = B.left, B.right
 
 	} else {
 		B = F.left
+		if B == nil {
+			return false
+		}
 		N1, N2 = B.right, B.left
 	}
 	if !color(B) && !color(N1) && !color(N2) {
@@ -269,7 +275,6 @@ func (tree *Tree) BlackBroRedRNefCase(X, F *Node) {
 		B.left = F
 		B.parent = F.parent
 		F.right = N1
-		N1.parent = F
 		if N1 != nil {
 			N1.parent = F
 		}
@@ -422,7 +427,7 @@ func (tree *Tree) RedBroCase(X, F *Node) {
 	if F == nil {
 		F = X.parent
 	}
-	var B, N1, N2 *Node
+	var B, N1 *Node
 	var leftCase = false
 
 	if X == F.left {
@@ -431,36 +436,45 @@ func (tree *Tree) RedBroCase(X, F *Node) {
 
 	if leftCase {
 		B = F.right
-		N1, N2 = B.left, B.right
+		N1 = B.left
 		B.left = F
 		B.parent = F.parent
 		F.right = N1
-		N1.parent = F
 
 	} else {
 		B = F.left
-		N1, N2 = B.right, B.left
+		N1 = B.right
 		B.right = F
 		B.parent = F.parent
 		F.left = N1
+	}
+
+	if N1 != nil {
 		N1.parent = F
 	}
 
 	F.parent = B
 	if B.parent == nil {
 		tree.root = B
-	}
-	if B == B.parent.left {
-		B.parent.left = B
 	} else {
-		B.parent.right = B
+		if B == B.parent.left {
+			B.parent.left = B
+		} else {
+			B.parent.right = B
+		}
 	}
 
 	F.RepaintRed()
 	B.RepaintBlack()
 
-	if tree.BlackBroNefCaseCheck(N2, F) {
-		tree.BlackBroNefCase(N2, F)
+	if tree.BlackBroNefCaseCheck(X, F) {
+		tree.BlackBroNefCase(X, F)
+	}
+	if tree.BlackBroRedRNefCaseCheck(X, F) {
+		tree.BlackBroRedRNefCase(X, F)
+	}
+	if tree.BlackBroRNEFRedLNefCaseCheck(X, F) {
+		tree.BlackBroRNEFRedLNefCase(X, F)
 	}
 
 	//if tree.BlackBroRedRNefCase()
