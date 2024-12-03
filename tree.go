@@ -173,28 +173,12 @@ func (tree *Tree) childFreeRemove(X *Node) {
 		if color(X) {
 			return
 		}
-		//else {
-		//	B := F.right
-		//	if B
-		//	if !color(B) {
-		//		B.RepaintRed()
-		//	}
-		//	X.parent = nil
-		//	F.left = nil
-		//}
+
 	} else {
 		F.right = nil
 		if color(X) {
 			return
 		}
-		//else {
-		//	B := F.left
-		//	if !color(B) {
-		//		B.RepaintRed()
-		//	}
-		//	X.parent = nil
-		//	F.right = nil
-		//}
 	}
 
 	if tree.BlackBroNefCaseCheck(nil, F) {
@@ -285,4 +269,120 @@ func (tree *Tree) remove(value int) {
 	}
 
 	tree.root.RepaintBlack()
+}
+
+// Обход в высоту (DFS)
+
+//Прямой (Pre-Order, NLR)
+
+func (tree *Tree) Preorder() {
+	if tree.root == nil {
+		return
+	}
+	fmt.Print("Pre-Order Traversal: ")
+
+	var node *Node = tree.root
+	stack := make([]*Node, 0)
+	stack = append(stack, node)
+	for len(stack) != 0 {
+		node = stack[len(stack)-1]
+		stack = stack[:len(stack)-1]
+		fmt.Print(node.value, " ")
+		if node.right != nil {
+			stack = append(stack, node.right)
+		}
+		if node.left != nil {
+			stack = append(stack, node.left)
+		}
+	}
+}
+
+// обратный обход (Post-Order, LRN)
+
+func (tree *Tree) PostOrder() {
+
+	if tree.root == nil {
+		fmt.Println("The tree is empty.")
+		return
+	}
+
+	fmt.Print("Post-Order Traversal: ")
+
+	stack := make([]*Node, 0)
+
+	var lastVisited *Node = nil
+	cur := tree.root
+
+	for len(stack) != 0 || cur != nil {
+		if cur != nil {
+			stack = append(stack, cur)
+			cur = cur.left
+		} else {
+			var peekNode = stack[len(stack)-1]
+			if peekNode.right != nil && lastVisited != peekNode.right {
+				cur = peekNode.right
+			} else {
+				fmt.Print(peekNode.value, " ")
+				lastVisited = peekNode
+				stack = stack[:len(stack)-1]
+			}
+		}
+	}
+}
+
+// Симметричный(Центрированный) обход (In-Order, LNR)
+
+func (tree *Tree) inOrder() {
+	if tree.root == nil {
+		fmt.Println("The tree is empty.")
+		return
+	}
+
+	fmt.Print("In-Order Traversal: ")
+	var node *Node = tree.root
+	stack := make([]*Node, 0)
+	for len(stack) != 0 || node != nil {
+		if node != nil {
+			stack = append(stack, node)
+			node = node.left
+
+		} else {
+			var cur = stack[len(stack)-1]
+			stack = stack[:len(stack)-1]
+			if cur.value != 0 {
+				fmt.Print(cur.value, " ")
+			}
+			node = cur.right
+		}
+	}
+}
+
+//обход в ширину
+// Обход по уровням ( Level-Order )
+
+func (tree *Tree) levelOrder() {
+	if tree.root == nil {
+		fmt.Println("The tree is empty.")
+		return
+	}
+
+	fmt.Print("Level-Order Traversal: ")
+	var node = tree.root
+	queue := make([]*Node, 0)
+	queue = append(queue, node)
+	var cur *Node = nil
+	for len(queue) != 0 {
+		cur = queue[0]
+		queue = queue[1:]
+		if cur.value != 0 {
+			fmt.Print(cur.value, " ")
+		}
+		if cur.left != nil {
+			queue = append(queue, cur.left)
+
+		}
+		if cur.right != nil {
+			queue = append(queue, cur.right)
+		}
+	}
 }
