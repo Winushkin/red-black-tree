@@ -1,12 +1,15 @@
 package main
 
+import (
+	"fmt"
+)
+
 // обход в глубину через рекурсию
-// скобочная конструкция
 
 type BinNode struct {
 	value       int
-	parent      *Node
-	left, right *Node
+	parent      *BinNode
+	left, right *BinNode
 }
 
 func NewBinNode(value int) *BinNode {
@@ -15,10 +18,6 @@ func NewBinNode(value int) *BinNode {
 
 type BinaryTree struct {
 	root *BinNode
-}
-
-func NewBinaryTree() *BinaryTree {
-	return &BinaryTree{root: nil}
 }
 
 func (tree *BinaryTree) insert(node *BinNode, value int) {
@@ -33,30 +32,40 @@ func (tree *BinaryTree) insert(node *BinNode, value int) {
 	}
 
 	if node.left == nil {
+		node.left = NewBinNode(value)
 
 	}
+}
 
-	//if tree.root == nil {
-	//	tree.root = &BinNode{value: value, parent: nil, left: nil, right: nil}
-	//	return
-	//}
-	//// исправить BST на BT
-	//cur := tree.root
-	//for {
-	//	if value < cur.value {
-	//		if cur.left != nil {
-	//			cur = cur.left
-	//		} else {
-	//			cur.left = &BinNode{value: value, parent: cur, left: nil, right: nil}
-	//		}
-	//
-	//	} else if cur.value > value {
-	//		if cur.right != nil {
-	//			cur = cur.right
-	//		} else {
-	//			cur.right = &BinNode{value: value, parent: cur, left: nil, right: nil}
-	//		}
-	//	}
-	//}
+func (tree *BinaryTree) PrintBinTree() {
+	if tree.root == nil {
+		fmt.Println("Дерево пустое")
+		return
+	}
+	printBinNode(tree.root, "", true)
+}
 
+// Рекурсивная функция вывода узла
+func printBinNode(node *BinNode, prefix string, isRight bool) {
+	if node != nil {
+
+		// Вывод текущего узла
+		fmt.Printf("%s%s── %d\n", prefix, branch(isRight), node.value)
+
+		// Обновляем префикс для дочерних узлов
+		newPrefix := prefix + branchPrefix(isRight)
+		printBinNode(node.left, newPrefix, false) // Левый ребенок
+		printBinNode(node.right, newPrefix, true) // Правый ребенок
+	}
+}
+
+// Обход в высоту (DFS)
+//Прямой (Pre-Order, NLR)
+
+func (tree *BinaryTree) PreOrder(node *BinNode) {
+	if node != nil {
+		fmt.Print(node.value, " ")
+		tree.PreOrder(node.left)
+		tree.PreOrder(node.right)
+	}
 }
